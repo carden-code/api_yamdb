@@ -1,33 +1,50 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
 
+class MyUserManager(BaseUserManager):
+    def create_user(self, email, date_of_birth, password=None):
+        if not email:
+            raise ValueError('Users must have an email address')
+
+        user = self.model(
+            email=self.normalize_email(email),
+            date_of_birth=date_of_birth,
+        )
+
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None):
+        user = self.create_user(
+            email,
+            password=password,
+        )
+        user.is_admin = True
+        user.save(using=self._db)
+        return user
+
+
 class User(AbstractUser):
-    ADMIN = 1
-    MODERATOR = 2
-    USER = 3
+    ROLES = (("user", "USER"), ("moderator", "MODERATOR"), ("admin", "ADMIN"))
 
-    ROLE_CHOICES = (
-        (ADMIN, 'admin'),
-        (MODERATOR, 'moderator'),
-        (USER, 'user'),
-    )
+    email = models.EmailField(max_length=254, unique=True, blank=False)
+    bio = models.TextField(verbose_name="Биография", blank=True)
+    role = models.CharField(max_length=300, choices=ROLES, default=ROLES[0][0])
 
-    bio = models.TextField(
-        verbose_name='Биография',
-        blank=True,
-    )
-    email = models.EmailField(
-        verbose_name='Электронная почта',
-        unique=True
-    )
-    password = None
+    objects = MyUserManager()
 
-    role = models.PositiveSmallIntegerField(
-        verbose_name='Роль пользователя',
-        choices=ROLE_CHOICES,
-        default=USER
-    )
+    @property
+    def is_admin(self):
+        return self.is_superuser or self.role == "admin"
+
+    @property
+    def is_moderator(self):
+        return self.role == "moderator"
+
+    def __str__(self):
+        return self.username
 
     class Meta:
         ordering = ['-id']
