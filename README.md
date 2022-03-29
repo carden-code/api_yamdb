@@ -1,3 +1,7 @@
 # api_yamdb
 api_yamdb
-elena
+<<<<<<< HEAD
+
+=======
+elena 1
+>>>>>>> elena
