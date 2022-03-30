@@ -51,11 +51,12 @@ class Comment(models.Model):
         User,
         verbose_name='Автор',
         on_delete=models.CASCADE,
-        related_name='reviews',
+        related_name='reviews'
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True,
+        db_index=True
     )
 
     class Meta:
