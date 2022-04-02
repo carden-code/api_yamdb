@@ -49,7 +49,7 @@ class Comment(models.Model):
     )
     author = models.ForeignKey(
         User,
-        verbose_name='Автор',
+        verbose_name='Комментатор',
         on_delete=models.CASCADE,
         related_name='comments'
     )
