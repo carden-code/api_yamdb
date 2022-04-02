@@ -1,41 +1,58 @@
 from django.contrib.auth.models import AbstractUser
+from django.utils.translation import gettext_lazy as _
 from django.db import models
 
 
 class User(AbstractUser):
-    ROLES = (('user', 'USER'), ('moderator', 'MODERATOR'), ('admin', 'ADMIN'))
+    ROLES = (
+        ('user', 'USER'),
+        ('moderator', 'MODERATOR'),
+        ('admin', 'ADMIN')
+    )
 
     email = models.EmailField(
-        verbose_name='Электронная почта',
-        max_length=254,
+        _('email'),
+        max_length=256,
         unique=True,
         blank=False
     )
     password = models.CharField(
-        verbose_name='Пароль',
+        _('password'),
         max_length=128,
         blank=True
     )
-    bio = models.TextField(verbose_name='Биография', blank=True)
+    bio = models.TextField(
+        _('description'),
+        max_length=512,
+        blank=True
+    )
     role = models.CharField(
-        verbose_name='Роль',
-        max_length=300,
+        _('role'),
+        max_length=30,
         choices=ROLES,
-        default=ROLES[0][0]
+        default='user'
+    )
+    token = models.CharField(
+        _('token'),
+        max_length=128,
+        blank=True
     )
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
+    def __str__(self):
+        return self.username
+
     @property
     def is_admin(self):
-        return self.is_superuser or self.role == 'admin'
+        return self.role == 'admin' or self.is_superuser
 
     @property
     def is_moderator(self):
         return self.role == 'moderator'
 
-    def __str__(self):
-        return self.username
+    def check_token(self, token):
+        return self.token == token
